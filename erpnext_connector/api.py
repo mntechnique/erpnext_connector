@@ -53,6 +53,7 @@ def get_auth_token(user=None):
 	rs = frappe.cache()
 	try:
 		bearer_token = json.loads(rs.get_value("{0}_bearer_token".format(user)))
+		valid_access_token = bearer_token.get("data").get("access_token") 
 	except Exception as e:
 		respond_error()
 
@@ -90,6 +91,7 @@ def get_auth_token(user=None):
 			key = bearer_token.get('data').get("user") + "_bearer_token"
 			rs = frappe.cache()
 			rs.set_value(key, json.dumps(bearer_token))
+			revoke_token(valid_access_token)
 			return bearer_token.get("data").get("access_token")
 		except Exception as e:
 			respond_error()
@@ -136,3 +138,13 @@ def get_doc(doctype=None, docname=None):
 def respond_error():
 	auth_url = get_oauth2_authorize_url('frappe')
 	frappe.throw(_('<a href="' + auth_url + '" class="btn btn-primary">login via Frappe</a>'), title=_("Session Expired"))
+
+def revoke_token(valid_access_token=None):
+	if valid_access_token:
+		frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
+		revoke_token_endpoint = "/api/method/frappe.integrations.oauth2.revoke_token"
+		payload = {'token':valid_access_token}
+		requests.post(
+			frappe_server_url + revoke_token_endpoint,
+			data=payload
+		)
