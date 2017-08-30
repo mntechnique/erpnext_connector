@@ -116,7 +116,7 @@ app_license = "MIT"
 # Overriding Whitelisted Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "erpnext_connector.event.get_events"
-# }
+override_whitelisted_methods = {
+	"frappe.www.login.login_via_frappe": "erpnext_connector.api.login_via_frappe"
+}
 
