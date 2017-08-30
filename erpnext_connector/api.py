@@ -88,3 +88,22 @@ def get_auth_token(user=None):
 			return bearer_token.get("data").get("access_token")
 		except Exception as e:
 			frappe.throw(_("Token seems to be revoked")) 
+
+def get_all(doctype=None):
+	if not doctype:
+		frappe.throw(_("DocType not found"))
+	access_token = get_auth_token(frappe.session.user)
+	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
+	payload = 'fields=["*"]&'
+	payload += 'limit_page_length=None'
+	headers = {
+		'content-type':'application/x-www-form-urlencoded',
+		'Authorization': 'Bearer ' + access_token
+	}
+
+	data = requests.get(
+		frappe_server_url + "/api/resource/" + doctype,
+		data=payload,
+		headers=headers
+	)
+	return data.json().get("data")
