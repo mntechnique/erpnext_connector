@@ -2,7 +2,8 @@
 
 from __future__ import unicode_literals
 import frappe, json, requests
-from frappe.utils.oauth import login_oauth_user, get_oauth2_flow, get_oauth2_providers, get_redirect_uri
+from frappe.utils.oauth import login_oauth_user, get_oauth2_flow, get_oauth2_providers, \
+								get_redirect_uri, get_oauth2_authorize_url
 from frappe import _
 
 @frappe.whitelist(allow_guest=True)
@@ -50,7 +51,11 @@ def get_auth_token(user=None):
 		user = frappe.session.user
 
 	rs = frappe.cache()
-	bearer_token = json.loads(rs.get_value("{0}_bearer_token".format(user)))
+	try:
+		bearer_token = json.loads(rs.get_value("{0}_bearer_token".format(user)))
+	except Exception as e:
+		respond_error()
+
 	auth_headers = {
 		'content-type':'application/x-www-form-urlencoded',
 		'Authorization':'Bearer ' + bearer_token.get("data").get("access_token")
@@ -87,8 +92,9 @@ def get_auth_token(user=None):
 			rs.set_value(key, json.dumps(bearer_token))
 			return bearer_token.get("data").get("access_token")
 		except Exception as e:
-			frappe.throw(_("Token seems to be revoked")) 
+			respond_error()
 
+@frappe.whitelist()
 def get_all(doctype=None):
 	if not doctype:
 		frappe.throw(_("DocType not found"))
@@ -107,3 +113,26 @@ def get_all(doctype=None):
 		headers=headers
 	)
 	return data.json().get("data")
+
+@frappe.whitelist()
+def get_doc(doctype=None, docname=None):
+	if not doctype:
+		frappe.throw(_("DocType not found"))
+	if not docname:
+		frappe.throw(_("Docname not found"))
+	access_token = get_auth_token(frappe.session.user)
+	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
+	headers = {
+		'content-type':'application/x-www-form-urlencoded',
+		'Authorization': 'Bearer ' + access_token
+	}
+
+	data = requests.get(
+		frappe_server_url + "/api/resource/" + doctype + "/" + docname,
+		headers=headers
+	)
+	return data.json().get("data")
+
+def respond_error():
+	auth_url = get_oauth2_authorize_url('frappe')
+	frappe.throw(_('<a href="' + auth_url + '" class="btn btn-primary">login via Frappe</a>'), title=_("Session Expired"))
