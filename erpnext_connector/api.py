@@ -32,10 +32,7 @@ def get_info_via_oauth(provider, code, decoder=None):
 		params={"fields":'["*"]'})
 	token = token_response.json()
 	token_user = token.get("data").get("user")
-	key = token_user + "_bearer_token"
-	rs = frappe.cache()
-	rs.set_value(key, json.dumps(token))
-
+	save_token(token_user, token)
 	api_endpoint = oauth2_providers[provider].get("api_endpoint")
 	api_endpoint_args = oauth2_providers[provider].get("api_endpoint_args")
 	info = session.get(api_endpoint, params=api_endpoint_args).json()
@@ -50,35 +47,30 @@ def get_auth_token(user=None):
 	if not user:
 		user = frappe.session.user
 
-	rs = frappe.cache()
-	try:
-		bearer_token = json.loads(rs.get_value("{0}_bearer_token".format(user)))
-		valid_access_token = bearer_token.get("data").get("access_token") 
-	except Exception as e:
-		respond_error()
+	bearer_token = get_token_data(user)
 
-	auth_headers = {
-		'content-type':'application/x-www-form-urlencoded',
-		'Authorization':'Bearer ' + bearer_token.get("data").get("access_token")
-	}
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	openid_endpoint = "/api/method/frappe.integrations.oauth2.openid_profile"
 	token_endpoint = "/api/method/frappe.integrations.oauth2.get_token"
 	# Request for bearer token
 	try:
+		auth_headers = {
+			'content-type':'application/x-www-form-urlencoded',
+			'Authorization':'Bearer ' + bearer_token.get("data").get("access_token")
+		}
+		valid_access_token = bearer_token.get("data").get("access_token")
 		openid_response = requests.get(frappe_server_url + openid_endpoint, headers=auth_headers).json()
 		return bearer_token.get("data").get("access_token")
 	except Exception as e:
-		headers = {'content-type':'application/x-www-form-urlencoded'}
-		# Refresh token
-		payload = "grant_type=refresh_token&refresh_token="
-		payload += bearer_token.get("data").get("refresh_token")
-		payload += "&redirect_uri="
-		payload += get_redirect_uri("frappe") 
-		payload += "&client_id="
-		payload += bearer_token.get("data").get("client")
-
 		try:
+			headers = {'content-type':'application/x-www-form-urlencoded'}
+			# Refresh token
+			payload = "grant_type=refresh_token&refresh_token="
+			payload += bearer_token.get("data").get("refresh_token")
+			payload += "&redirect_uri="
+			payload += get_redirect_uri("frappe") 
+			payload += "&client_id="
+			payload += bearer_token.get("data").get("client")
 			token_response = requests.post(frappe_server_url + token_endpoint, data=payload, headers=headers).json()
 			auth_headers["Authorization"] = "Bearer " + token_response.get("access_token")
 
@@ -88,9 +80,7 @@ def get_auth_token(user=None):
 				headers=auth_headers
 			).json()
 
-			key = bearer_token.get('data').get("user") + "_bearer_token"
-			rs = frappe.cache()
-			rs.set_value(key, json.dumps(bearer_token))
+			save_token(token_user=bearer_token.get('data').get("user"), token=bearer_token)
 			revoke_token(valid_access_token)
 			return bearer_token.get("data").get("access_token")
 		except Exception as e:
@@ -148,3 +138,33 @@ def revoke_token(valid_access_token=None):
 			frappe_server_url + revoke_token_endpoint,
 			data=payload
 		)
+
+def save_token(token_user, token):
+	save_token_in = frappe.get_doc("ERPNext Connector Settings").get("save_token_in")
+	if save_token_in == "DocType":
+		try:
+			connector_user_data = frappe.get_doc("Connector User Data", token_user)
+		except Exception as e:
+			connector_user_data = frappe.new_doc("Connector User Data")
+		connector_user_data.user = token_user
+		connector_user_data.bearer_token = json.dumps(token)
+		connector_user_data.save(ignore_permissions=True)
+		frappe.db.commit()
+	elif save_token_in == "Redis":
+		key = token_user + "_bearer_token"
+		rs = frappe.cache()
+		rs.set_value(key, json.dumps(token))
+
+def get_token_data(user):
+	save_token_in = frappe.get_doc("ERPNext Connector Settings").get("save_token_in")
+	try:
+		if save_token_in == "DocType":
+			token_code = frappe.db.get_value("Connector User Data", user, "bearer_token")
+			bearer_token = json.loads(token_code)
+			return bearer_token
+		elif save_token_in == "Redis":
+			rs = frappe.cache()
+			bearer_token = json.loads(rs.get_value("{0}_bearer_token".format(user)))
+			return bearer_token
+	except Exception as e:
+		return None
