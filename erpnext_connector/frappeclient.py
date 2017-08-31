@@ -192,31 +192,28 @@ def set_value(doctype, name, fieldname, value=None):
 	return data.json().get("message")
 
 @frappe.whitelist()
-def submit(doc=None):
+def submit(doctype, docname):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
 	payload = {
-		"doc":doc
+		"data":"{\"docstatus\":1}"
 	}
-	data = requests.post(
-		frappe_server_url + "/api/method/frappe.client.submit",
+	data = requests.put(
+		frappe_server_url + "/api/resource/" + doctype + "/" + docname,
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message")
+	return data.json().get("data")
 
 @frappe.whitelist()
 def add_assign_to(args=None):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
-	payload = {
-		"args":args
-	}
 	data = requests.post(
 		frappe_server_url + "/api/method/frappe.desk.form.assign_to.add",
-		data=payload,
+		data=args,
 		headers=headers
 	)
 	return data.json().get("message")
