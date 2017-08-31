@@ -11,7 +11,7 @@ def bulk_update(docs):
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
 	payload = {
-		"docs":docs
+		"docs":json.dumps(docs)
 	}
 	data = requests.post(
 		frappe_server_url + "/api/method/frappe.client.bulk_update",
@@ -116,9 +116,8 @@ def insert(doc=None):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
-	payload = {
-		"doc":doc
-	}
+	payload = {}
+	if doc: payload["doc"] = json.dumps(doc)
 	data = requests.post(
 		frappe_server_url + "/api/method/frappe.client.insert",
 		data=payload,
@@ -131,9 +130,8 @@ def insert_many(docs=None):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
-	payload = {
-		"docs":docs
-	}
+	payload = {}
+	if docs: payload["docs"] = json.dumps(docs)
 	data = requests.post(
 		frappe_server_url + "/api/method/frappe.client.insert_many",
 		data=payload,
@@ -150,8 +148,8 @@ def rename_doc(doctype, old_name, new_name, merge=False):
 		"doctype":doctype,
 		"old_name":old_name,
 		"new_name":new_name,
-		"merge":merge
 	}
+	if merge: payload["merge"] = merge
 	data = requests.post(
 		frappe_server_url + "/api/method/frappe.client.rename_doc",
 		data=payload,
@@ -167,8 +165,8 @@ def set_default(key, value, parent=None):
 	payload = {
 		"key":key,
 		"value":value,
-		"parent":parent
 	}
+	if parent: payload["parent"] = parent
 	data = requests.post(
 		frappe_server_url + "/api/method/frappe.client.set_default",
 		data=payload,
@@ -184,9 +182,9 @@ def set_value(doctype, name, fieldname, value=None):
 	payload = {
 		"doctype":doctype,
 		"name":name,
-		"fieldname":fieldname,
-		"value":value
+		"fieldname":fieldname
 	}
+	if value: payload["value"] = value
 	data = requests.post(
 		frappe_server_url + "/api/method/frappe.client.set_value",
 		data=payload,
