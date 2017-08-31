@@ -58,10 +58,11 @@ def get(doctype, name=None, filters=None):
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
 	payload = {
-		"doctype":doctype,
-		"name":name,
-		"filters": filters
+		"doctype":doctype
 	}
+	if name: payload["name"] = name
+	if filters: payload["filters"] = json.dumps(filters)
+	payload = '&'.join(["{}={}".format(k, v) for k, v in payload.items()])
 	data = requests.get(
 		frappe_server_url + "/api/method/frappe.client.get",
 		data=payload,
@@ -76,12 +77,13 @@ def get_list(doctype, fields=None, filters=None, order_by=None, limit_start=None
 	headers = get_auth_headers(access_token)
 	payload = {
 		"doctype":doctype,
-		"fields":fields,
-		"filters": filters,
-		"order_by": order_by,
-		"limit_start": limit_start,
 		"limit_page_length":limit_page_length
 	}
+	if fields: payload["fields"] = json.dumps(fields)
+	if filters: payload["filters"] = json.dumps(filters)
+	if order_by: payload["order_by"] = order_by
+	if limit_start: payload["limit_start"] = limit_start
+	payload = '&'.join(["{}={}".format(k, v) for k, v in payload.items()])
 	data = requests.get(
 		frappe_server_url + "/api/method/frappe.client.get_list",
 		data=payload,
@@ -96,11 +98,12 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 	headers = get_auth_headers(access_token)
 	payload = {
 		"doctype":doctype,
-		"fieldname":fieldname,
-		"filters": filters,
-		"as_dict": as_dict,
-		"debug": debug
+		"fieldname":fieldname
 	}
+	if filters: payload["filters"] = json.dumps(filters)
+	if as_dict: payload["as_dict"] = as_dict
+	if debug: payload["debug"] = debug
+	payload = '&'.join(["{}={}".format(k, v) for k, v in payload.items()])
 	data = requests.get(
 		frappe_server_url + "/api/method/frappe.client.get_value",
 		data=payload,
