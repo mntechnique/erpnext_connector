@@ -6,7 +6,7 @@ from frappe import _
 from .account_manager import get_info_via_oauth, get_auth_token, get_auth_headers
 
 @frappe.whitelist()
-def bulk_update(docs):
+def bulk_update(docs, get_response=False):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
@@ -18,10 +18,10 @@ def bulk_update(docs):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message")	
+	return data.json().get("message") if not get_response else data
 
 @frappe.whitelist()
-def cancel(doctype, name):
+def cancel(doctype, name, get_response=False):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
@@ -34,10 +34,10 @@ def cancel(doctype, name):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message")	
+	return data.json().get("message") if not get_response else data
 
 @frappe.whitelist()
-def delete(doctype, name):
+def delete(doctype, name, get_response=False):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
@@ -50,10 +50,10 @@ def delete(doctype, name):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message")
+	return data.json().get("message") if not get_response else data
 
 @frappe.whitelist()
-def get(doctype, name=None, filters=None):
+def get(doctype, name=None, filters=None, get_response=False):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
@@ -68,10 +68,11 @@ def get(doctype, name=None, filters=None):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message")
+	return data.json().get("message") if not get_response else data
 
 @frappe.whitelist()
-def get_list(doctype, fields=None, filters=None, order_by=None, limit_start=None, limit_page_length=20):
+def get_list(doctype, fields=None, filters=None, order_by=None,
+				limit_start=None, limit_page_length=20, get_response=False):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
@@ -89,10 +90,10 @@ def get_list(doctype, fields=None, filters=None, order_by=None, limit_start=None
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message")
+	return data.json().get("message") if not get_response else data
 
 @frappe.whitelist()
-def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
+def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, get_response=False):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
@@ -109,10 +110,10 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message")
+	return data.json().get("message") if not get_response else data
 
 @frappe.whitelist()
-def insert(doc=None):
+def insert(doc=None, get_response=False):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
@@ -123,10 +124,10 @@ def insert(doc=None):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message")
+	return data.json().get("message") if not get_response else data
 
 @frappe.whitelist()
-def insert_many(docs=None):
+def insert_many(docs=None, get_response=False):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
@@ -137,10 +138,10 @@ def insert_many(docs=None):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message")
+	return data.json().get("message") if not get_response else data
 
 @frappe.whitelist()
-def rename_doc(doctype, old_name, new_name, merge=False):
+def rename_doc(doctype, old_name, new_name, merge=False, get_response=False):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
@@ -155,10 +156,10 @@ def rename_doc(doctype, old_name, new_name, merge=False):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message")
+	return data.json().get("message") if not get_response else data
 
 @frappe.whitelist()
-def set_default(key, value, parent=None):
+def set_default(key, value, parent=None, get_response=False):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
@@ -172,10 +173,10 @@ def set_default(key, value, parent=None):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message")
+	return data.json().get("message") if not get_response else data
 
 @frappe.whitelist()
-def set_value(doctype, name, fieldname, value=None):
+def set_value(doctype, name, fieldname, value=None, get_response=False):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
@@ -190,10 +191,10 @@ def set_value(doctype, name, fieldname, value=None):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message")
+	return data.json().get("message") if not get_response else data
 
 @frappe.whitelist()
-def submit(doctype, docname):
+def submit(doctype, docname, get_response=False):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
@@ -205,10 +206,10 @@ def submit(doctype, docname):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("data")
+	return data.json().get("data") if not get_response else data
 
 @frappe.whitelist()
-def add_assign_to(args=None):
+def add_assign_to(args=None, get_response=False):
 	access_token = get_auth_token(frappe.session.user)
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
 	headers = get_auth_headers(access_token)
@@ -217,4 +218,4 @@ def add_assign_to(args=None):
 		data=args,
 		headers=headers
 	)
-	return data.json().get("message")
+	return data.json().get("message") if not get_response else data
