@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import frappe, json, requests
 from frappe import _
 from .account_manager import get_info_via_oauth, get_auth_token, get_auth_headers
+from .utils import parse_data
 
 @frappe.whitelist()
 def bulk_update(docs, get_response=False):
@@ -18,7 +19,7 @@ def bulk_update(docs, get_response=False):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message") if not get_response else data
+	return parse_data(data, get_response)
 
 @frappe.whitelist()
 def cancel(doctype, name, get_response=False):
@@ -34,7 +35,7 @@ def cancel(doctype, name, get_response=False):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message") if not get_response else data
+	return parse_data(data, get_response)
 
 @frappe.whitelist()
 def delete(doctype, name, get_response=False):
@@ -50,7 +51,7 @@ def delete(doctype, name, get_response=False):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message") if not get_response else data
+	return parse_data(data, get_response)
 
 @frappe.whitelist()
 def get(doctype, name=None, filters=None, get_response=False):
@@ -68,7 +69,7 @@ def get(doctype, name=None, filters=None, get_response=False):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message") if not get_response else data
+	return parse_data(data, get_response)
 
 @frappe.whitelist()
 def get_list(doctype, fields=None, filters=None, order_by=None,
@@ -90,7 +91,7 @@ def get_list(doctype, fields=None, filters=None, order_by=None,
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message") if not get_response else data
+	return parse_data(data, get_response)
 
 @frappe.whitelist()
 def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, get_response=False):
@@ -110,7 +111,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, get_r
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message") if not get_response else data
+	return parse_data(data, get_response)
 
 @frappe.whitelist()
 def insert(doc=None, get_response=False):
@@ -138,7 +139,7 @@ def insert_many(docs=None, get_response=False):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message") if not get_response else data
+	return parse_data(data, get_response)
 
 @frappe.whitelist()
 def rename_doc(doctype, old_name, new_name, merge=False, get_response=False):
@@ -156,7 +157,7 @@ def rename_doc(doctype, old_name, new_name, merge=False, get_response=False):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message") if not get_response else data
+	return parse_data(data, get_response)
 
 @frappe.whitelist()
 def set_default(key, value, parent=None, get_response=False):
@@ -173,7 +174,7 @@ def set_default(key, value, parent=None, get_response=False):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message") if not get_response else data
+	return parse_data(data, get_response)
 
 @frappe.whitelist()
 def set_value(doctype, name, fieldname, value=None, get_response=False):
@@ -191,7 +192,7 @@ def set_value(doctype, name, fieldname, value=None, get_response=False):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("message") if not get_response else data
+	return parse_data(data, get_response)
 
 @frappe.whitelist()
 def submit(doctype, docname, get_response=False):
@@ -206,7 +207,7 @@ def submit(doctype, docname, get_response=False):
 		data=payload,
 		headers=headers
 	)
-	return data.json().get("data") if not get_response else data
+	return parse_data(data, get_response, key='data')
 
 @frappe.whitelist()
 def add_assign_to(args=None, get_response=False):
@@ -218,4 +219,4 @@ def add_assign_to(args=None, get_response=False):
 		data=args,
 		headers=headers
 	)
-	return data.json().get("message") if not get_response else data
+	return parse_data(data, get_response)
