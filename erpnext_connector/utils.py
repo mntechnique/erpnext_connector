@@ -17,6 +17,6 @@ def parse_data(data, get_response, key="message"):
 	try:
 		return data.json().get(key) if not get_response else data
 	except Exception as e:
-		error = parse_html(data.text, 'pre')
+		error = parse_html(data.text, tag='pre')
 		print(error)
 		return error

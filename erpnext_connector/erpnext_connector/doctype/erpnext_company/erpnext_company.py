@@ -11,6 +11,3 @@ import erpnext_connector
 class ERPNextCompany(Document):
 	pass
 
-def erpnext_company_query(doctype, txt, searchfield, start, page_len, filters):
-	searchfield = ["name","abbr"]
-	return upstream_doc_query(doctype, txt, searchfield, start, page_len, filters)
