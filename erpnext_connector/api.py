@@ -47,7 +47,7 @@ def get_upstream_docs(doctype, fields, page_len, filters):
 	for d in data:
 		if not d.get("name") in [l.get("name") for l in local_data]:
 			doc = frappe.new_doc(connector_doctype)
-			doc[ frappe.scrub(doctype) + '_name'] = d.get('name')
+			setattr(doc, frappe.scrub(doctype) + '_name', d.get('name'))
 			doc.save(ignore_permissions=True)
 			frappe.db.commit()
 	return data
