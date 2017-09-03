@@ -26,7 +26,8 @@ def get_info_via_oauth(provider, code, decoder=None):
 		params={"fields":'["*"]'})
 	token = token_response.json()
 	token_user = token.get("data").get("user")
-	save_token(token_user, token)
+	if frappe.db.exists("User", token_user):
+		save_token(token_user, token)
 	api_endpoint = oauth2_providers[provider].get("api_endpoint")
 	api_endpoint_args = oauth2_providers[provider].get("api_endpoint_args")
 	info = session.get(api_endpoint, params=api_endpoint_args).json()
