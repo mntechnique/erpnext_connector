@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 import frappe, json, requests
 from frappe import _
+from frappe.frappeclient import FrappeClient
 from .account_manager import get_info_via_oauth, get_auth_token, get_auth_headers
 from .utils import parse_data
 
@@ -220,3 +221,37 @@ def add_assign_to(args=None, get_response=False):
 		headers=headers
 	)
 	return parse_data(data, get_response)
+
+class FrappeOAuth2Client(FrappeClient):
+	def __init__(self, url, access_token, verify=True):
+		self.access_token = access_token
+		self.headers = {
+			"Authorization": "Bearer " + access_token,
+			"content-type": "application/x-www-form-urlencoded"
+		}
+		self.verify = verify
+		self.session = OAuth2Session(self.headers)
+		self.url = url
+
+	def get_request(self, params):
+		res = requests.get(self.url, params=self.preprocess(params), headers=self.headers, verify=self.verify)
+		res = self.post_process(res)
+		return res
+
+	def post_request(self, data):
+		res = requests.post(self.url, data=self.preprocess(data), headers=self.headers, verify=self.verify)
+		res = self.post_process(res)
+		return res
+
+class OAuth2Session():
+	def __init__(self, headers):
+		self.headers = headers
+	def get(self, url, params, verify):
+		res = requests.get(url, params=params, headers=self.headers, verify=verify)
+		return res
+	def post(self, url, data, verify):
+		res = requests.post(url, data=data, headers=self.headers, verify=verify)
+		return res
+	def put(self, url, data, verify):
+		res = requests.put(url, data=data, headers=self.headers, verify=verify)
+		return res
