@@ -1,7 +1,7 @@
 # see license
 
 from __future__ import unicode_literals
-import frappe
+import frappe, requests
 from frappe import _
 
 try: 
@@ -20,3 +20,7 @@ def parse_data(data, get_response, key="message"):
 		error = parse_html(data.text, tag='pre')
 		print(error)
 		return error
+
+def get_timezone(frappe_server_url):
+	timezone = requests.get(frappe_server_url + "/api/method/frappe.client.get_time_zone").json().get("message").get("time_zone")
+	return timezone

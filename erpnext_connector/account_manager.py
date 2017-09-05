@@ -1,6 +1,7 @@
 # see license
 from __future__ import unicode_literals
-import frappe, json, requests
+import frappe, json, requests, pytz
+from .utils import get_timezone
 from frappe.utils.oauth import get_oauth2_flow, get_oauth2_providers, \
 								get_redirect_uri, get_oauth2_authorize_url
 from frappe import _
@@ -42,6 +43,9 @@ def get_auth_token(user=None):
 	if not user:
 		user = frappe.session.user
 
+	query_token = frappe.get_doc("ERPNext Connector Settings").query_token
+	if not query_token:
+		frappe.throw(_("Set Query Token in ERPNext Connector Settings"))
 	bearer_token = get_token_data(user)
 
 	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
@@ -51,7 +55,15 @@ def get_auth_token(user=None):
 	try:
 		valid_access_token = bearer_token.get("data").get("access_token")
 		auth_headers = get_auth_headers(bearer_token.get("data").get("access_token"))
-		openid_response = requests.get(frappe_server_url + openid_endpoint, headers=auth_headers).json()
+		if query_token == "Always":
+			openid_response = requests.get(frappe_server_url + openid_endpoint, headers=auth_headers).json()
+		elif query_token == "On Expiry":
+			server_time_zone = get_timezone(frappe_server_url)
+			expiration = frappe.utils.data.get_datetime(bearer_token.get("data").get("expiration_time"))
+			expiration = expiration.replace(tzinfo=pytz.timezone(server_time_zone))
+			localtime = frappe.utils.datetime.datetime.now().replace(tzinfo=pytz.timezone(frappe.utils.get_time_zone()))
+			if localtime > expiration:
+				openid_response = requests.get(frappe_server_url + openid_endpoint, headers=auth_headers).json()
 		return bearer_token.get("data").get("access_token")
 	except Exception as e:
 		try:
@@ -94,6 +106,8 @@ def revoke_token(valid_access_token=None):
 
 def save_token(token_user, token):
 	save_token_in = frappe.get_doc("ERPNext Connector Settings").get("save_token_in")
+	if not save_token_in:
+		frappe.throw(_("Set DocType or Redis in ERPNext Connector Token Settings"))
 	if save_token_in == "DocType":
 		try:
 			connector_user_data = frappe.get_doc("Connector User Data", token_user)
@@ -110,6 +124,8 @@ def save_token(token_user, token):
 
 def get_token_data(user):
 	save_token_in = frappe.get_doc("ERPNext Connector Settings").get("save_token_in")
+	if not save_token_in:
+		frappe.throw(_("Set DocType or Redis in ERPNext Connector Token Settings"))
 	try:
 		if save_token_in == "DocType":
 			token_code = frappe.db.get_value("Connector User Data", user, "bearer_token")
