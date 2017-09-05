@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import frappe, json, requests
 from frappe.utils.oauth import login_oauth_user
 from .frappeclient import get_list
+from .account_manager import respond_error
 from frappe import _
 
 from .account_manager import get_info_via_oauth, get_auth_token, get_auth_headers
@@ -18,7 +19,11 @@ def upstream_doc_query(doctype, txt, searchfield, start, page_len, filters):
 	upstream_doctype = doctype.split("ERPNext ")[1]
 	if hooks.get("erpnext_connector_search_fields") and hooks.get("erpnext_connector_search_fields").get(upstream_doctype):
 		searchfield = hooks.get("erpnext_connector_search_fields").get(upstream_doctype)
-	remote_data = get_upstream_docs(upstream_doctype, searchfield, page_len, filters)
+	try:
+		remote_data = get_upstream_docs(upstream_doctype, searchfield, page_len, filters)
+	except Exception as e:
+		remote_data = None
+		respond_error()
 	compare_data = []
 	out = []
 	for d in remote_data:
