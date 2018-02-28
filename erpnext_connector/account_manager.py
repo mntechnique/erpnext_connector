@@ -48,7 +48,7 @@ def get_auth_token(user=None):
 		frappe.throw(_("Set Query Token in ERPNext Connector Settings"))
 	bearer_token = get_token_data(user)
 
-	frappe_server_url = frappe.db.get_value("Social Login Keys", None, "frappe_server_url")
+	frappe_server_url = frappe.db.get_value("Social Login Key", "frappe", "base_url")
 	openid_endpoint = "/api/method/frappe.integrations.oauth2.openid_profile"
 	token_endpoint = "/api/method/frappe.integrations.oauth2.get_token"
 	# Request for bearer token
